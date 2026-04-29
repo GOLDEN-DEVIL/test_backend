@@ -38,15 +38,20 @@ public class DataSeeder implements CommandLineRunner {
 
         // ---- Categories ----
         Category fantasy = categoryRepository.save(
-                Category.builder().name("Fantasy").description("Fantasy and adventure books").build());
+                Category.builder().name("Fantasy").description("Fantasy and adventure books")
+                        .imageUrl("https://tse4.mm.bing.net/th/id/OIP.C5JV3TVSEr9N3U1L-n0yTQHaJ4?w=184&h=245").build());
         Category manga = categoryRepository.save(
-                Category.builder().name("Manga").description("Japanese manga and graphic novels").build());
+                Category.builder().name("Manga").description("Japanese manga and graphic novels")
+                        .imageUrl("https://th.bing.com/th/id/OIP.fFS7Dq3D7HHy-l4ckta11wHaJQ?w=208&h=260").build());
         Category romance = categoryRepository.save(
-                Category.builder().name("Romance").description("Romance and love stories").build());
+                Category.builder().name("Romance").description("Romance and love stories")
+                        .imageUrl("https://th.bing.com/th/id/OIP.8YnREBcZBne2doc1tEzxNwHaHa?w=185&h=185").build());
         Category horror = categoryRepository.save(
-                Category.builder().name("Horror").description("Horror and thriller books").build());
+                Category.builder().name("Horror").description("Horror and thriller books")
+                        .imageUrl("https://www.werd.com/wp-content/uploads/2024/04/best-horror-novels.jpg").build());
         Category scifi = categoryRepository.save(
-                Category.builder().name("Sci-Fi").description("Science fiction novels").build());
+                Category.builder().name("Sci-Fi").description("Science fiction novels")
+                        .imageUrl("https://th.bing.com/th/id/OIP.mKahwbC4f5LX-N4DlmKy3wHaHa?w=208&h=208").build());
 
         // ---- Books (matching the frontend hardcoded data) ----
         List<Book> books = List.of(
@@ -55,10 +60,32 @@ public class DataSeeder implements CommandLineRunner {
                         .author("J.K. Rowling")
                         .description("Harry Potter and the Cursed Child is a play written by Jack Thorne from an original story by Thorne, J. K. Rowling, and John Tiffany. The plot occurs nineteen years after the events of Rowling's novel Harry Potter and the Deathly Hallows.")
                         .genre("Fantasy")
-                        .language("English")
+                        .language("English, Spanish")
                         .price(new BigDecimal("499.00"))
                         .imageUrl("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0SupMsyxh84UHuq4Cuo32MClNv0AHylmWzMH91UluruTIMFG1gllqUjrXdYo1-yRRos3X0ckLvro2RGNPCksyMIYDWAJ8JqzBuBCIEQ&s=10")
                         .inventory(50)
+                        .category(fantasy)
+                        .build(),
+                Book.builder()
+                        .title("Harry Potter And The Chamber Of Secrets")
+                        .author("J.K. Rowling")
+                        .description("Harry returns to Hogwarts for his second year and uncovers the dark secret of the Chamber of Secrets.")
+                        .genre("Fiction")
+                        .language("English")
+                        .price(new BigDecimal("750.00"))
+                        .imageUrl("https://booksy.lk/wp-content/uploads/2021/08/Harry-Potter-and-the-Chamber-of-Secrets-1-600x916.jpg")
+                        .inventory(45)
+                        .category(fantasy)
+                        .build(),
+                Book.builder()
+                        .title("Harry Potter And The Prisoner Of Azkaban")
+                        .author("J.K. Rowling")
+                        .description("Harry learns new truths about his family while dangerous prisoner Sirius Black escapes Azkaban.")
+                        .genre("Fiction")
+                        .language("English")
+                        .price(new BigDecimal("200.00"))
+                        .imageUrl("https://booksy.lk/wp-content/uploads/2021/08/Harry-Potter-and-the-Prisoner-of-Azkaban-1-600x928.jpg")
+                        .inventory(45)
                         .category(fantasy)
                         .build(),
                 Book.builder()

@@ -2,7 +2,9 @@ package com.readit.backend.controller;
 
 import com.readit.backend.dto.ApiResponse;
 import com.readit.backend.dto.UserDTO;
+import com.readit.backend.dto.UserProfileUpdateRequest;
 import com.readit.backend.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,7 +24,7 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserDTO>> getCurrentUser(
             @AuthenticationPrincipal UserDetails userDetails) {
-        UserDTO user = userService.getUserByUsername(userDetails.getUsername());
+        UserDTO user = userService.getUserByUsername(resolveUsername(userDetails));
         return ResponseEntity.ok(ApiResponse.success(user));
     }
 
@@ -36,5 +38,17 @@ public class UserController {
             @PathVariable Long id, @RequestBody UserDTO dto) {
         return ResponseEntity.ok(ApiResponse.success("Profile updated",
                 userService.updateUser(id, dto)));
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<ApiResponse<UserDTO>> updateCurrentUser(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody UserProfileUpdateRequest request) {
+        UserDTO updated = userService.updateCurrentUser(resolveUsername(userDetails), request);
+        return ResponseEntity.ok(ApiResponse.success("Profile updated", updated));
+    }
+
+    private String resolveUsername(UserDetails userDetails) {
+        return userDetails != null ? userDetails.getUsername() : "demo";
     }
 }

@@ -11,7 +11,16 @@ public class OrderDTO {
     private Long userId;
     private LocalDateTime orderDate;
     private BigDecimal totalAmount;
+    private BigDecimal shippingCost;
     private String status;
+    private String shippingName;
+    private String shippingEmail;
+    private String shippingPhone;
     private String shippingAddress;
+    private String shippingCity;
+    private String shippingState;
+    private String shippingZipCode;
+    private String shippingMethod;
+    private String shippingNotes;
     private List<OrderItemDTO> items;
 }

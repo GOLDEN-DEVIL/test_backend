@@ -9,9 +9,18 @@ import com.readit.backend.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Business logic for Book operations.
@@ -30,7 +39,21 @@ public class BookService {
      * Get all books with pagination.
      */
     public Page<BookDTO> getAllBooks(Pageable pageable) {
-        return bookRepository.findAll(pageable)
+        return getAllBooks(pageable, null, null, null, null);
+    }
+
+    public Page<BookDTO> getAllBooks(
+            Pageable pageable,
+            String query,
+            String genre,
+            String language,
+            BigDecimal maxPrice) {
+        return bookRepository.findByFilters(
+                        sanitize(query),
+                        sanitize(genre),
+                        sanitize(language),
+                        maxPrice,
+                        pageable)
                 .map(this::toDTO);
     }
 
@@ -58,6 +81,30 @@ public class BookService {
     public Page<BookDTO> getBooksByCategory(Long categoryId, Pageable pageable) {
         return bookRepository.findByCategory_Id(categoryId, pageable)
                 .map(this::toDTO);
+    }
+
+    public List<BookDTO> getRelatedBooks(Long id, Integer limit) {
+        Book current = bookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Book", "id", id));
+
+        int safeLimit = (limit == null || limit <= 0) ? 5 : Math.min(limit, 20);
+        PageRequest page = PageRequest.of(0, safeLimit);
+
+        Map<Long, Book> related = new LinkedHashMap<>();
+        if (current.getCategory() != null) {
+            bookRepository.findByCategory_IdAndIdNot(current.getCategory().getId(), id, page)
+                    .forEach(book -> related.put(book.getId(), book));
+        }
+
+        if (related.size() < safeLimit && current.getGenre() != null) {
+            bookRepository.findByGenreIgnoreCaseAndIdNot(current.getGenre(), id, page)
+                    .forEach(book -> related.put(book.getId(), book));
+        }
+
+        return related.values().stream()
+                .limit(safeLimit)
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -98,6 +145,9 @@ public class BookService {
 
     private BookDTO toDTO(Book book) {
         BookDTO dto = modelMapper.map(book, BookDTO.class);
+        dto.setCover(book.getImageUrl());
+        dto.setLanguages(parseLanguages(book.getLanguage()));
+        dto.setDeliveryDate("5-7 business days");
         if (book.getCategory() != null) {
             dto.setCategoryId(book.getCategory().getId());
             dto.setCategoryName(book.getCategory().getName());
@@ -110,9 +160,20 @@ public class BookService {
         book.setAuthor(dto.getAuthor());
         book.setDescription(dto.getDescription());
         book.setGenre(dto.getGenre());
-        book.setLanguage(dto.getLanguage());
+        String resolvedLanguage = sanitize(dto.getLanguage());
+        if (resolvedLanguage == null && dto.getLanguages() != null && !dto.getLanguages().isEmpty()) {
+            resolvedLanguage = dto.getLanguages().stream()
+                    .map(String::trim)
+                    .filter(s -> !s.isBlank())
+                    .collect(Collectors.joining(", "));
+        }
+        book.setLanguage(resolvedLanguage);
         book.setPrice(dto.getPrice());
-        book.setImageUrl(dto.getImageUrl());
+        String resolvedImageUrl = sanitize(dto.getImageUrl());
+        if (resolvedImageUrl == null) {
+            resolvedImageUrl = sanitize(dto.getCover());
+        }
+        book.setImageUrl(resolvedImageUrl);
         book.setInventory(dto.getInventory() != null ? dto.getInventory() : 0);
 
         if (dto.getCategoryId() != null) {
@@ -120,5 +181,22 @@ public class BookService {
                     .orElseThrow(() -> new ResourceNotFoundException("Category", "id", dto.getCategoryId()));
             book.setCategory(category);
         }
+    }
+
+    private List<String> parseLanguages(String language) {
+        if (language == null || language.isBlank()) {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(language.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .collect(Collectors.toList());
+    }
+
+    private String sanitize(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 }

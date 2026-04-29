@@ -2,6 +2,7 @@ package com.readit.backend.service;
 
 import com.readit.backend.dto.*;
 import com.readit.backend.entity.User;
+import com.readit.backend.exception.DuplicateResourceException;
 import com.readit.backend.repository.UserRepository;
 import com.readit.backend.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -30,10 +31,10 @@ public class AuthService {
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new IllegalArgumentException("Username is already taken");
+            throw new DuplicateResourceException("User", "username", request.getUsername());
         }
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("Email is already registered");
+            throw new DuplicateResourceException("User", "email", request.getEmail());
         }
 
         User user = User.builder()
@@ -51,6 +52,7 @@ public class AuthService {
         String token = tokenProvider.generateTokenFromUsername(saved.getUsername());
         UserDTO userDTO = modelMapper.map(saved, UserDTO.class);
         userDTO.setRole(saved.getRole().name());
+        userDTO.setName(saved.getFullName());
 
         return new AuthResponse(token, userDTO);
     }
@@ -73,6 +75,7 @@ public class AuthService {
 
             UserDTO userDTO = modelMapper.map(user, UserDTO.class);
             userDTO.setRole(user.getRole().name());
+            userDTO.setName(user.getFullName());
 
             return new AuthResponse(token, userDTO);
         } catch (Exception e) {

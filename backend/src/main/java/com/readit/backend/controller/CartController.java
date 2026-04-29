@@ -2,6 +2,7 @@ package com.readit.backend.controller;
 
 import com.readit.backend.dto.ApiResponse;
 import com.readit.backend.dto.CartItemDTO;
+import com.readit.backend.dto.CartItemQuantityUpdateRequest;
 import com.readit.backend.dto.CartItemRequest;
 import com.readit.backend.service.CartService;
 import com.readit.backend.service.UserService;
@@ -26,7 +27,7 @@ public class CartController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<CartItemDTO>>> getCart(
             @AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = userService.getUserByUsername(userDetails.getUsername()).getId();
+        Long userId = userService.getUserByUsername(resolveUsername(userDetails)).getId();
         return ResponseEntity.ok(ApiResponse.success(cartService.getCartByUser(userId)));
     }
 
@@ -34,7 +35,7 @@ public class CartController {
     public ResponseEntity<ApiResponse<CartItemDTO>> addToCart(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody CartItemRequest request) {
-        Long userId = userService.getUserByUsername(userDetails.getUsername()).getId();
+        Long userId = userService.getUserByUsername(resolveUsername(userDetails)).getId();
         CartItemDTO item = cartService.addToCart(userId, request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.created(item));
@@ -43,8 +44,8 @@ public class CartController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<CartItemDTO>> updateCartItem(
             @PathVariable Long id,
-            @RequestParam Integer quantity) {
-        return ResponseEntity.ok(ApiResponse.success(cartService.updateCartItem(id, quantity)));
+            @Valid @RequestBody CartItemQuantityUpdateRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(cartService.updateCartItem(id, request.getQuantity())));
     }
 
     @DeleteMapping("/{id}")
@@ -56,8 +57,12 @@ public class CartController {
     @DeleteMapping
     public ResponseEntity<ApiResponse<Void>> clearCart(
             @AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = userService.getUserByUsername(userDetails.getUsername()).getId();
+        Long userId = userService.getUserByUsername(resolveUsername(userDetails)).getId();
         cartService.clearCart(userId);
         return ResponseEntity.ok(ApiResponse.success("Cart cleared", null));
+    }
+
+    private String resolveUsername(UserDetails userDetails) {
+        return userDetails != null ? userDetails.getUsername() : "demo";
     }
 }

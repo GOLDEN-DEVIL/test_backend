@@ -25,6 +25,10 @@ public class Order {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;
 
+    @Column(nullable = false, precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal shippingCost = BigDecimal.ZERO;
+
     @Column(nullable = false, length = 30)
     @Builder.Default
     private String status = "PENDING";
@@ -32,6 +36,17 @@ public class Order {
     /** Snapshot of the delivery address at time of purchase */
     @Column(columnDefinition = "TEXT")
     private String shippingAddress;
+
+    private String shippingName;
+    private String shippingEmail;
+    private String shippingPhone;
+    private String shippingCity;
+    private String shippingState;
+    private String shippingZipCode;
+    private String shippingMethod;
+
+    @Column(columnDefinition = "TEXT")
+    private String shippingNotes;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

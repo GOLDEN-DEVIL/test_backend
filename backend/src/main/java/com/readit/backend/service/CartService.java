@@ -82,8 +82,12 @@ public class CartService {
                 .id(item.getId())
                 .bookId(item.getBook().getId())
                 .bookTitle(item.getBook().getTitle())
+                .title(item.getBook().getTitle())
+                .genre(item.getBook().getGenre())
                 .bookImageUrl(item.getBook().getImageUrl())
+                .image(item.getBook().getImageUrl())
                 .bookPrice(item.getBook().getPrice())
+                .price(item.getBook().getPrice())
                 .quantity(item.getQuantity())
                 .build();
     }

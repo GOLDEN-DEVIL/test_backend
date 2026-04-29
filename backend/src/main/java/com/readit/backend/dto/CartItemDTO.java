@@ -8,7 +8,11 @@ public class CartItemDTO {
     private Long id;
     private Long bookId;
     private String bookTitle;
+    private String title;
+    private String genre;
     private String bookImageUrl;
+    private String image;
     private BigDecimal bookPrice;
+    private BigDecimal price;
     private Integer quantity;
 }

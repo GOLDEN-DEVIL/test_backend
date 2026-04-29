@@ -22,22 +22,25 @@ public class CategoryService {
 
     public List<CategoryDTO> getAllCategories() {
         return categoryRepository.findAll().stream()
-                .map(c -> modelMapper.map(c, CategoryDTO.class))
+                .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
     public CategoryDTO getCategoryById(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "id", id));
-        return modelMapper.map(category, CategoryDTO.class);
+        return toDTO(category);
     }
 
     @Transactional
     public CategoryDTO createCategory(CategoryDTO dto) {
         Category category = modelMapper.map(dto, Category.class);
         category.setId(null);
+        if (category.getImageUrl() == null || category.getImageUrl().isBlank()) {
+            category.setImageUrl(dto.getImg());
+        }
         Category saved = categoryRepository.save(category);
-        return modelMapper.map(saved, CategoryDTO.class);
+        return toDTO(saved);
     }
 
     @Transactional
@@ -46,9 +49,12 @@ public class CategoryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "id", id));
         category.setName(dto.getName());
         category.setDescription(dto.getDescription());
-        category.setImageUrl(dto.getImageUrl());
+        category.setImageUrl(
+                dto.getImageUrl() != null && !dto.getImageUrl().isBlank()
+                        ? dto.getImageUrl()
+                        : dto.getImg());
         Category updated = categoryRepository.save(category);
-        return modelMapper.map(updated, CategoryDTO.class);
+        return toDTO(updated);
     }
 
     @Transactional
@@ -57,5 +63,11 @@ public class CategoryService {
             throw new ResourceNotFoundException("Category", "id", id);
         }
         categoryRepository.deleteById(id);
+    }
+
+    private CategoryDTO toDTO(Category category) {
+        CategoryDTO dto = modelMapper.map(category, CategoryDTO.class);
+        dto.setImg(category.getImageUrl());
+        return dto;
     }
 }

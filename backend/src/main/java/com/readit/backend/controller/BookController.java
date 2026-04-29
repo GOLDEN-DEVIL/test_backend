@@ -13,6 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 /**
  * Book REST controller.
  * Demonstrates the separation of concerns — controller only handles
@@ -33,9 +36,13 @@ public class BookController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse<Page<BookDTO>>> getAllBooks(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String genre,
+            @RequestParam(required = false) String language,
+            @RequestParam(required = false) BigDecimal maxPrice,
             @PageableDefault(size = 12, sort = "title", direction = Sort.Direction.ASC)
             Pageable pageable) {
-        Page<BookDTO> books = bookService.getAllBooks(pageable);
+        Page<BookDTO> books = bookService.getAllBooks(pageable, q, genre, language, maxPrice);
         return ResponseEntity.ok(ApiResponse.success(books));
     }
 
@@ -46,6 +53,16 @@ public class BookController {
     public ResponseEntity<ApiResponse<BookDTO>> getBookById(@PathVariable Long id) {
         BookDTO book = bookService.getBookById(id);
         return ResponseEntity.ok(ApiResponse.success(book));
+    }
+
+    /**
+     * GET /api/books/{id}/related?limit=5
+     */
+    @GetMapping("/{id}/related")
+    public ResponseEntity<ApiResponse<List<BookDTO>>> getRelatedBooks(
+            @PathVariable Long id,
+            @RequestParam(required = false) Integer limit) {
+        return ResponseEntity.ok(ApiResponse.success(bookService.getRelatedBooks(id, limit)));
     }
 
     /**
